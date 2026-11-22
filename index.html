@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>OPALog</title>
+<meta name="theme-color" content="#1b1038">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="OPALog">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="opalog_logo.jpeg">
+<link rel="icon" href="opalog_logo.jpeg">
+<style>
+:root{--bg:#150c2e;--bg2:#2a1659;--card:rgba(255,255,255,.07);--line:rgba(255,255,255,.14);--tx:#f1ecff;--mut:#b4a8d6;--v:#a78bfa;--g:#6ee7b7;--b:#7dd3fc;--r:#fb7185}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;color:var(--tx);background:radial-gradient(900px 600px at 20% -10%,#4c2a99 0,transparent 60%),radial-gradient(700px 500px at 100% 20%,#0e5a62 0,transparent 55%),linear-gradient(160deg,var(--bg2),var(--bg));background-attachment:fixed;padding:env(safe-area-inset-top) 0 calc(84px + env(safe-area-inset-bottom))}
+main{max-width:560px;margin:auto;padding:14px 16px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+header img{width:46px;height:46px;border-radius:14px;object-fit:cover;box-shadow:0 0 22px rgba(167,139,250,.5)}
+h1{font-size:26px;margin:0;letter-spacing:.5px;background:linear-gradient(90deg,#d8c8ff,var(--g),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent}
+header small{display:block;color:var(--mut);font-size:12px}
+.sp{flex:1}
+.pill{font-size:11px;padding:6px 11px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--mut);cursor:pointer;transition:.2s}
+.pill.on{color:var(--g);border-color:rgba(110,231,183,.5)}
+.pill.err{color:var(--r);border-color:rgba(251,113,133,.5)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px;margin:12px 0;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+section{display:none}section.on{display:block}
+#orbwrap{position:relative;display:flex;flex-direction:column;align-items:center}
+canvas{width:260px;height:260px;max-width:80vw}
+#rec{margin-top:-8px;width:76px;height:76px;border-radius:50%;border:2px solid rgba(255,255,255,.6);background:linear-gradient(135deg,var(--v),#6d5bd6 55%,var(--b));color:#fff;font-size:28px;box-shadow:0 0 30px rgba(167,139,250,.6);transition:transform .15s}
+#rec:active{transform:scale(.94)}
+#rec.live{background:linear-gradient(135deg,var(--r),#c026d3);animation:pu 1.2s infinite}
+@keyframes pu{50%{box-shadow:0 0 50px rgba(251,113,133,.9)}}
+#tm{margin-top:8px;color:var(--mut);font-variant-numeric:tabular-nums;min-height:20px;font-size:14px}
+label{display:block;font-size:12px;color:var(--mut);margin:12px 0 5px}
+input,textarea{width:100%;background:rgba(10,5,30,.45);border:1px solid var(--line);border-radius:14px;color:var(--tx);padding:12px 14px;font-size:16px;font-family:inherit;outline:none}
+input:focus,textarea:focus{border-color:var(--v);box-shadow:0 0 0 3px rgba(167,139,250,.25)}
+textarea{min-height:110px;resize:vertical}
+.row{display:flex;gap:10px;margin-top:14px}
+button{font:inherit;cursor:pointer}
+.btn{flex:1;padding:13px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--tx);font-weight:600;font-size:15px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.p{background:linear-gradient(135deg,var(--v),#7c6be8 50%,#34b3a0);border:0;color:#fff}
+.btn.d{color:var(--r)}
+audio{width:100%;margin-top:12px;height:38px;border-radius:12px}
+.big{font-size:44px;font-weight:700;line-height:1;background:linear-gradient(90deg,var(--g),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent}
+.bar{margin:12px 0;cursor:pointer;padding:4px 0}
+.bar div:first-child{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
+.bar i{display:block;height:9px;border-radius:9px;background:linear-gradient(90deg,var(--v),var(--b),var(--g));box-shadow:0 0 12px rgba(125,211,252,.4);transition:width .4s ease}
+.item h3{margin:0 0 5px;font-size:16px}
+.tag{display:inline-block;font-size:11px;padding:3px 9px;border-radius:99px;background:rgba(167,139,250,.22);color:#ddd2ff;margin-right:6px;cursor:pointer}
+.item p{color:var(--mut);font-size:14px;margin:9px 0;white-space:pre-wrap;line-height:1.45}
+.item-foot{display:flex;align-items:center;gap:14px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.07)}
+.item a{color:var(--b);font-size:13px;text-decoration:none}
+.item button{background:none;border:0;color:var(--r);font-size:13px;padding:0;margin-left:auto}
+.meta{font-size:11px;color:var(--mut)}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-around;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:rgba(21,12,46,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--line);z-index:5}
+nav button{background:none;border:0;color:var(--mut);font-size:11px;padding:4px 18px;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button span{font-size:21px}nav button.on{color:var(--g)}
+#mod{position:fixed;inset:0;background:rgba(5,2,15,.72);display:none;align-items:center;justify-content:center;padding:24px;z-index:9}
+#mod.on{display:flex}
+#mod>div{background:#24134d;border:1px solid var(--line);border-radius:22px;padding:20px;width:100%;max-width:380px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+#toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#2b1a5c;border:1px solid var(--line);padding:10px 16px;border-radius:99px;font-size:13px;opacity:0;transition:.3s;pointer-events:none;z-index:10;max-width:90%;text-align:center}
+#toast.on{opacity:1}
+.empty{text-align:center;color:var(--mut);padding:24px;font-size:14px}
+.filter-chip{display:none;align-items:center;justify-content:space-between;font-size:12px;color:var(--g);margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+.filter-chip.on{display:flex}
+.filter-chip button{background:none;border:0;color:var(--mut);font-size:12px;text-decoration:underline}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <img src="opalog_logo.jpeg" alt="OPALog" onerror="this.style.display='none'">
+  <div><h1>OPALog</h1><small>Tus ideas, pulidas como ópalos</small></div>
+  <div class="sp"></div>
+  <button class="pill" id="st">Sincronizar</button>
+  <button class="pill" id="cfg" aria-label="Ajustes">⚙︎</button>
+</header>
+
+<section id="s-new" class="on">
+  <div class="card" id="orbwrap">
+    <canvas id="orb" width="520" height="520"></canvas>
+    <button id="rec" aria-label="Grabar">🎙</button>
+    <div id="tm">Toca para grabar una idea</div>
+  </div>
+  <div class="card">
+    <audio id="au" controls playsinline style="display:none"></audio>
+    <label>Categoría</label><input id="cat" list="cats" placeholder="Negocios, Música, Viajes…" autocomplete="off">
+    <datalist id="cats"></datalist>
+    <label>Título</label><input id="tit" placeholder="Nombre de tu ópalo" autocomplete="off">
+    <label>Texto <span id="trs"></span></label><textarea id="txt" placeholder="Se transcribe de tu voz, o escribe directamente aquí…"></textarea>
+    <div class="row"><button class="btn" id="cancel">Cancelar</button><button class="btn p" id="save">Registrar</button></div>
+  </div>
+</section>
+
+<section id="s-list">
+  <div class="card">
+    <input id="q" type="search" placeholder="🔍 Buscar por título, categoría o texto">
+    <div class="filter-chip" id="fchip">
+      <span>Filtrando: <b id="fcat"></b></span>
+      <button id="fclear">Ver todos</button>
+    </div>
+  </div>
+  <div id="list"></div>
+</section>
+
+<section id="s-stats">
+  <div class="card"><div class="big" id="total">0</div><div class="meta">ópalos guardados</div></div>
+  <div class="card"><b>Por categoría</b> <span class="meta">(toca para filtrar)</span><div id="chart"></div></div>
+</section>
+</main>
+
+<nav>
+  <button data-t="new" class="on"><span>✦</span>Nuevo</button>
+  <button data-t="list"><span>◈</span>Ópalos</button>
+  <button data-t="stats"><span>◔</span>Resumen</button>
+</nav>
+<div id="mod"><div></div></div>
+<div id="toast"></div>
+
+<script>
+/* ====== CONFIGURACIÓN ====== */
+const CFG = {
+  // Opcional: pega aquí tu URL de Apps Script si no quieres ingresarla desde ⚙︎
+  GAS_URL: ''
+};
+
+const $ = id => document.getElementById(id);
+const LS = (k, v) => v === undefined ? (localStorage.getItem('opalog_' + k) || '') : localStorage.setItem('opalog_' + k, v);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'\u0026amp;','<':'\u0026lt;','>':'\u0026gt;','"':'\u0026quot;',"'":'\u0026#39;'}[c]));
+
+let rows = [], blob = null, mime = '', audioUrl = '', catFilter = '';
+
+try { rows = JSON.parse(LS('cache') || '[]'); } catch { rows = []; }
+
+function toast(m) {
+  const t = $('toast');
+  t.textContent = m;
+  t.classList.add('on');
+  clearTimeout(toast.h);
+  toast.h = setTimeout(() => t.classList.remove('on'), 2800);
+}
+
+function ask(html, ok = 'Confirmar', cancel = 'Cancelar') {
+  return new Promise(res => {
+    const m = $('mod');
+    m.firstElementChild.innerHTML = html + `<div class="row"><button class="btn" id="mc">${cancel}</button><button class="btn p" id="mo">${ok}</button></div>`;
+    m.classList.add('on');
+    const done = v => { m.classList.remove('on'); res(v); };
+    $('mc').onclick = () => done(false);
+    $('mo').onclick = () => done(true);
+  });
+}
+
+function goTab(name) {
+  document.querySelectorAll('nav button, section').forEach(e => e.classList.remove('on'));
+  document.querySelector(`nav button[data-t="${name}"]`).classList.add('on');
+  $('s-' + name).classList.add('on');
+}
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => goTab(b.dataset.t));
+
+/* ====== API GOOGLE APPS SCRIPT ====== */
+function setSt(state, label) {
+  const el = $('st');
+  el.classList.remove('on', 'err');
+  if (state === 'on') el.classList.add('on');
+  if (state === 'err') el.classList.add('err');
+  el.textContent = label;
+}
+
+async function api(payload) {
+  const url = LS('url') || CFG.GAS_URL;
+  if (!url) {
+    toast('Configura la URL del Apps Script en ⚙︎');
+    throw new Error('NO_URL');
+  }
+  const res = await fetch(url, {
+    method: 'POST',
+    redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ ...payload, pin: LS('pin') })
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.error || 'Error en servidor');
+  return data;
+}
+
+async function load(silent = false) {
+  const url = LS('url') || CFG.GAS_URL;
+  if (!url) { setSt('', 'Configurar'); return; }
+  setSt('', 'Sync…');
+  try {
+    const data = await api({ action: 'list' });
+    rows = data.items || [];
+    LS('cache', JSON.stringify(rows));
+    setSt('on', '● En línea');
+    render();
+    if (!silent) toast('✦ Sincronizado con OPALog_BD');
+  } catch (e) {
+    setSt('err', 'Sin red');
+    if (!silent && e.message !== 'NO_URL') toast('Error: ' + e.message);
+  }
+}
+
+/* ====== GRABACIÓN + TRANSCRIPCIÓN ====== */
+let mr, chunks, ctxA, an, stream, level = 0, t0, tick;
+
+function blobToB64(b) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(b);
+  });
+}
+
+async function toggleRec() {
+  if (mr && mr.state === 'recording') {
+    mr.stop();
+    return;
+  }
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+    });
+  } catch {
+    toast('Permite el acceso al micrófono en Safari');
+    return;
+  }
+
+  ctxA = new (window.AudioContext || window.webkitAudioContext)();
+  if (ctxA.state === 'suspended') await ctxA.resume();
+  an = ctxA.createAnalyser();
+  an.fftSize = 256;
+  ctxA.createMediaStreamSource(stream).connect(an);
+
+  mime = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm']
+    .find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || '';
+
+  const opts = { ...(mime ? { mimeType: mime } : {}), audioBitsPerSecond: 64000 };
+  mr = new MediaRecorder(stream, opts);
+  chunks = [];
+
+  mr.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+  mr.onstop = async () => {
+    clearInterval(tick);
+    stream.getTracks().forEach(t => t.stop());
+    if (ctxA) { ctxA.close().catch(() => {}); ctxA = null; }
+    an = null;
+    level = 0;
+
+    $('rec').classList.remove('live');
+    $('rec').textContent = '🎙';
+
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
+    blob = new Blob(chunks, { type: mr.mimeType || mime || 'audio/mp4' });
+    mime = blob.type;
+    audioUrl = URL.createObjectURL(blob);
+
+    const a = $('au');
+    a.src = audioUrl;
+    a.style.display = 'block';
+    $('tm').textContent = 'Audio listo ✓';
+    transcribe();
+  };
+
+  mr.start(500);
+  t0 = Date.now();
+  $('rec').classList.add('live');
+  $('rec').textContent = '■';
+  tick = setInterval(() => {
+    const s = Math.floor((Date.now() - t0) / 1000);
+    $('tm').textContent = `● ${String(s / 60 | 0).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  }, 400);
+}
+
+async function transcribe() {
+  if (!blob || !(LS('url') || CFG.GAS_URL)) return;
+  $('trs').textContent = '· transcribiendo…';
+  try {
+    const audioB64 = await blobToB64(blob);
+    const res = await api({ action: 'transcribe', audioB64, mimeType: mime });
+    if (res.text) {
+      $('txt').value = ($('txt').value ? $('txt').value.trim() + '\n' : '') + res.text;
+      $('trs').textContent = '· transcrito ✓';
+    } else {
+      $('trs').textContent = '· (sin clave Gemini en Script, escribe o dicta)';
+    }
+  } catch {
+    $('trs').textContent = '· no se pudo transcribir, edita a mano';
+  }
+}
+$('rec').onclick = toggleRec;
+
+/* ====== ACCIONES CRUD ====== */
+function resetForm() {
+  if (audioUrl) { URL.revokeObjectURL(audioUrl); audioUrl = ''; }
+  blob = null;
+  ['cat', 'tit', 'txt'].forEach(i => $(i).value = '');
+  const a = $('au');
+  a.pause();
+  a.style.display = 'none';
+  a.removeAttribute('src');
+  $('trs').textContent = '';
+  $('tm').textContent = 'Toca para grabar una idea';
+}
+
+$('cancel').onclick = async () => {
+  if (!(blob || $('cat').value || $('tit').value || $('txt').value)) return;
+  if (await ask('<b>¿Descartar este ópalo?</b><p class="meta">Se perderá el audio y el texto actual.</p>', 'Descartar')) {
+    resetForm();
+  }
+};
+
+$('save').onclick = async () => {
+  const cat = $('cat').value.trim();
+  const tit = $('tit').value.trim();
+  const txt = $('txt').value.trim();
+
+  if (!cat || !tit) return toast('Ingresa categoría y título');
+  if (!txt && !blob) return toast('Graba un audio o escribe tu idea');
+
+  const ok = await ask(
+    `<b>¿Registrar este ópalo?</b><p class="meta">${esc(tit)} · ${esc(cat)}${blob ? ' · con nota de voz' : ''}</p>`,
+    'Registrar'
+  );
+  if (!ok) return;
+
+  const b = $('save');
+  b.disabled = true;
+  b.textContent = 'Guardando…';
+
+  try {
+    const audioB64 = blob ? await blobToB64(blob) : '';
+    const res = await api({ action: 'create', cat, tit, txt, audioB64, mimeType: mime });
+    rows.push(res.item);
+    LS('cache', JSON.stringify(rows));
+    render();
+    resetForm();
+    toast('✦ Ópalo registrado en Drive y Sheets');
+  } catch (e) {
+    if (e.message !== 'NO_URL') toast('Error al guardar: ' + e.message);
+  } finally {
+    b.disabled = false;
+    b.textContent = 'Registrar';
+  }
+};
+
+async function delOpal(id) {
+  const o = rows.find(x => x.id === id);
+  if (!o) return;
+  const ok = await ask(
+    `<b>¿Eliminar este ópalo?</b><p class="meta">${esc(o.tit)}<br>Se marcará como ELIMINADO = SI con fecha en OPALog_BD.</p>`,
+    'Eliminar'
+  );
+  if (!ok) return;
+
+  try {
+    await api({ action: 'delete', id });
+    rows = rows.filter(x => x.id !== id);
+    LS('cache', JSON.stringify(rows));
+    render();
+    toast('Ópalo eliminado');
+  } catch (e) {
+    toast('Error al eliminar: ' + e.message);
+  }
+}
+
+/* ====== RENDERIZADO Y ESTADÍSTICAS ====== */
+function filterByCat(c) {
+  catFilter = c;
+  $('fcat').textContent = c;
+  $('fchip').classList.toggle('on', !!c);
+  render();
+}
+$('fclear').onclick = () => filterByCat('');
+
+function render() {
+  $('total').textContent = rows.length;
+
+  const cats = {};
+  rows.forEach(r => {
+    const c = r.cat || 'Sin categoría';
+    cats[c] = (cats[c] || 0) + 1;
+  });
+
+  const ent = Object.entries(cats).sort((a, b) => b[1] - a[1]);
+  const mx = ent[0] ? ent[0][1] : 1;
+
+  $('chart').innerHTML = ent.map(([c, n]) => `
+    <div class="bar" data-c="${esc(c)}">
+      <div><span>${esc(c)}</span><b>${n}</b></div>
+      <i style="width:${Math.max(8, (n / mx) * 100)}%"></i>
+    </div>
+  `).join('') || '<div class="empty">Aún no hay datos</div>';
+
+  $('chart').querySelectorAll('.bar').forEach(el => {
+    el.onclick = () => {
+      filterByCat(el.dataset.c);
+      goTab('list');
+    };
+  });
+
+  $('cats').innerHTML = ent.map(([c]) => `<option value="${esc(c)}">`).join('');
+
+  const q = $('q').value.toLowerCase().trim();
+  const filtered = rows.filter(r => {
+    if (catFilter && (r.cat || 'Sin categoría') !== catFilter) return false;
+    if (!q) return true;
+    return [r.tit, r.cat, r.txt, r.id].join(' ').toLowerCase().includes(q);
+  }).slice().reverse();
+
+  $('list').innerHTML = filtered.map(r => `
+    <div class="card item">
+      <h3>${esc(r.tit)}</h3>
+      <span class="tag" data-c="${esc(r.cat)}">${esc(r.cat)}</span>
+      <span class="meta">${esc(r.fecha)} · ${esc(r.id)}</span>
+      ${r.txt ? `<p>${esc(r.txt)}</p>` : ''}
+      <div class="item-foot">
+        ${r.link ? `<a href="${esc(r.link)}" target="_blank" rel="noopener">▶ Abrir audio en Drive</a>` : '<span class="meta">Nota de texto</span>'}
+        <button data-del="${esc(r.id)}">Eliminar</button>
+      </div>
+    </div>
+  `).join('') || '<div class="empty">Sin ópalos que mostrar ✦</div>';
+
+  $('list').querySelectorAll('.tag').forEach(t => t.onclick = () => filterByCat(t.dataset.c));
+  $('list').querySelectorAll('[data-del]').forEach(b => b.onclick = () => delOpal(b.dataset.del));
+}
+$('q').oninput = render;
+
+/* ====== AJUSTES ====== */
+$('st').onclick = () => load(false);
+$('cfg').onclick = () => {
+  $('mod').firstElementChild.innerHTML = `
+    <b>Conexión OPALog_BD</b>
+    <label>URL Web App (Google Apps Script)</label>
+    <input id="c1" type="url" placeholder="https://script.google.com/macros/s/.../exec" value="${esc(LS('url') || CFG.GAS_URL)}">
+    <label>PIN de seguridad (APP_PIN)</label>
+    <input id="c2" type="password" placeholder="Tu PIN secreto" value="${esc(LS('pin'))}">
+    <div class="row"><button class="btn" id="mc">Cerrar</button><button class="btn p" id="mo">Guardar</button></div>
+  `;
+  $('mod').classList.add('on');
+  $('mc').onclick = () => $('mod').classList.remove('on');
+  $('mo').onclick = () => {
+    LS('url', $('c1').value.trim());
+    LS('pin', $('c2').value.trim());
+    $('mod').classList.remove('on');
+    toast('Configuración guardada');
+    load(false);
+  };
+};
+
+/* ====== PARTÍCULA / CUARZO INTERACTIVO ====== */
+(() => {
+  const c = $('orb'), x = c.getContext('2d'), W = 520, C = W / 2;
+  let e = 0;
+  const sp = Array.from({ length: 28 }, () => ({
+    a: Math.random() * 6.28,
+    r: 110 + Math.random() * 130,
+    s: .0004 + Math.random() * .0012,
+    z: 1 + Math.random() * 2.4,
+    k: Math.random()
+  }));
+  const L = [
+    ['rgba(167,139,250,.85)', 'rgba(109,91,214,.15)', 0],
+    ['rgba(110,231,183,.55)', 'rgba(52,179,160,.05)', 2.1],
+    ['rgba(125,211,252,.5)', 'rgba(125,211,252,.04)', 4.2]
+  ];
+
+  (function f(t) {
+    if (an) {
+      const d = new Uint8Array(an.frequencyBinCount);
+      an.getByteFrequencyData(d);
+      level = d.reduce((a, b) => a + b, 0) / d.length / 100;
+    }
+    e += (Math.min(level, 1.5) - e) * .14;
+    x.clearRect(0, 0, W, W);
+    x.globalCompositeOperation = 'lighter';
+
+    L.forEach(([c1, c2, ph], i) => {
+      const R = 92 + i * 8 + e * 20;
+      const amp = .05 + .22 * e + (mr && mr.state === 'recording' ? .06 : 0);
+      const sd = t / 1000 * (1 + e * 3.2);
+      x.beginPath();
+      for (let k = 0; k <= 72; k++) {
+        const a = k / 72 * 6.2832;
+        const n = (Math.sin(a * 3 + sd * (.9 + i * .3) + ph) + Math.sin(a * 5 - sd * 1.3 + ph * 2) * .6) / 1.6;
+        const r = R * (1 + amp * n);
+        const px = C + Math.cos(a) * r + Math.sin(sd * .7 + ph) * 8 * (1 + e * 2);
+        const py = C + Math.sin(a) * r + Math.cos(sd * .6 + ph) * 8 * (1 + e * 2);
+        k ? x.lineTo(px, py) : x.moveTo(px, py);
+      }
+      const gr = x.createRadialGradient(C - 30, C - 40, 10, C, C, R * 1.25);
+      gr.addColorStop(0, c1);
+      gr.addColorStop(1, c2);
+      x.fillStyle = gr;
+      x.fill();
+      x.strokeStyle = 'rgba(255,255,255,.22)';
+      x.lineWidth = 1.5;
+      x.stroke();
+    });
+
+    const h = x.createRadialGradient(C - 35, C - 45, 2, C - 35, C - 45, 60);
+    h.addColorStop(0, 'rgba(255,255,255,.55)');
+    h.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = h;
+    x.beginPath();
+    x.arc(C - 35, C - 45, 60, 0, 6.28);
+    x.fill();
+
+    sp.forEach(p => {
+      p.a += p.s * (1 + e * 15) * 16;
+      const r = p.r + Math.sin(t / 900 + p.k * 9) * 14 + e * 42;
+      const px = C + Math.cos(p.a) * r;
+      const py = C + Math.sin(p.a) * r;
+      const tw = .4 + .6 * Math.abs(Math.sin(t / 500 + p.k * 20));
+      x.fillStyle = p.k > .5 ? `rgba(110,231,183,${tw})` : `rgba(125,211,252,${tw})`;
+      x.beginPath();
+      x.arc(px, py, p.z * (1 + e), 0, 6.28);
+      x.fill();
+    });
+
+    x.globalCompositeOperation = 'source-over';
+    requestAnimationFrame(f);
+  })(0);
+})();
+
+/* ====== MANIFEST PWA + SERVICE WORKER ====== */
+(() => {
+  const base = location.href.split('#')[0].split('?')[0];
+  const dir = base.substring(0, base.lastIndexOf('/') + 1);
+  const manifest = {
+    name: 'OPALog',
+    short_name: 'OPALog',
+    description: 'Tus ideas, pulidas como ópalos',
+    start_url: base,
+    scope: dir,
+    display: 'standalone',
+    orientation: 'portrait',
+    background_color: '#150c2e',
+    theme_color: '#1b1038',
+    icons: [{ src: dir + 'opalog_logo.jpeg', sizes: '512x512', type: 'image/jpeg', purpose: 'any maskable' }]
+  };
+  const link = document.createElement('link');
+  link.rel = 'manifest';
+  link.href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
+  document.head.appendChild(link);
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+})();
+
+render();
+load(true);
+</script>
+</body>
+</html>
