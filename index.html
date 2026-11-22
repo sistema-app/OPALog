@@ -88,7 +88,7 @@ nav button span{font-size:21px}nav button.on{color:var(--g)}
   </div>
   <div class="card">
     <audio id="au" controls playsinline style="display:none"></audio>
-    <label>Categoría</label><input id="cat" list="cats" placeholder="Negocios, Música, Viajes…" autocomplete="off">
+    <label>Categoría</label><input id="cat" list="cats" placeholder="Programación, Música, Pensamientos..." autocomplete="off">
     <datalist id="cats"></datalist>
     <label>Título</label><input id="tit" placeholder="Nombre de tu ópalo" autocomplete="off">
     <label>Texto <span id="trs"></span></label><textarea id="txt" placeholder="Se transcribe de tu voz, o escribe directamente aquí…"></textarea>
@@ -306,7 +306,7 @@ function resetForm() {
   a.style.display = 'none';
   a.removeAttribute('src');
   $('trs').textContent = '';
-  $('tm').textContent = 'Toca para grabar una idea';
+  $('tm').textContent = 'Toca para grabar un ópalo';
 }
 
 $('cancel').onclick = async () => {
